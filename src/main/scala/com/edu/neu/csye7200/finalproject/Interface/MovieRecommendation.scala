@@ -4,7 +4,7 @@ import java.sql.Date
 import com.edu.neu.csye7200.finalproject.configure.FileConfig
 import com.edu.neu.csye7200.finalproject.util.{ALSUtil, DataUtil, QueryUtil}
 import com.github.tototoshi.csv._
-import scala.util.{Failure, Success, Try}
+
 /**
   * Created by IntelliJ IDEA.
   * User: dsnfz
@@ -100,18 +100,19 @@ object MovieRecommendation {
     * @param order          The order type: desc or asc
     * @return               Sorted movie dataset
     */
-  def SortBySelected(ds:Array[(Int,String,String,String,Date,Double)],selectedType:String="popularity",order:String="desc")={
-    selectedType match{
-      case "popularity"=> order match{
-        case "desc"=> ds.sortBy(-_._6)
-        case "asc"=>ds.sortBy(_._6)
+  def SortBySelected(ds:Array[(Int,String,String,String,Date,Double)],selectedType:String="popularity",order:String="desc")= {
+    selectedType match {
+      case "popularity" => order match {
+        case "desc" => ds.sortBy(-_._6)
+        case "asc" => ds.sortBy(_._6)
       }
-      case "release_date"=>
-        order match{
-          case "desc"=> ds.sortWith(_._5.getTime>_._5.getTime)
-          case _=>ds.sortBy(-_._5.getTime)
-      }
+      case "release_date" =>
+        order match {
+          case "desc" => ds.sortWith(_._5.getTime > _._5.getTime)
+          case _ => ds.sortBy(-_._5.getTime)
+        }
     }
+  }
 
     /**
       * Search movie by staffs
@@ -124,24 +125,25 @@ object MovieRecommendation {
     def queryBystaffInCredits(content: String, SelectedType: String) = {
       QueryUtil.QueryOfstaff(DataUtil.getStaff(FileConfig.creditFIle), df, content, SelectedType)
     }
-  def FindMovieByName(MovieName:String)={
-    val id=QueryUtil.QueryMovieIdByName(df,MovieName).map(x=>x._1)
-    if(id.size==0)
-      Some(id)
-    else None
-  }
-  /** add rating row to csv file to have better perform train model and result
-    *
-    * @param RatingsInfo  userid,movieId,rating,timestamp(System.currentTimeMillis/1000)
-    * @param MovieName   movieName
-    * @tparam T
-    */
-    def UpdateRatingsByRecommendation[T](RatingsInfo: List[T],MovieName:String) = {
-      val movieId=FindMovieByName(MovieName).getOrElse(0)
+
+    def FindMovieByName(MovieName: String) = {
+      val id = QueryUtil.QueryMovieIdByName(df, MovieName).map(x => x._1)
+      if (id.length != 0)
+        Some(id)
+      else None
+    }
+
+    /** add rating row to csv file to have better perform train model and result
+      *
+      * @param RatingsInfo userid,movieId,rating,timestamp(System.currentTimeMillis/1000)
+      * @param MovieName   movieName
+      * @tparam T
+      */
+    def UpdateRatingsByRecommendation[T](RatingsInfo: List[T], MovieName: String) = {
+      val movieId = FindMovieByName(MovieName).getOrElse(0)
       val writer = CSVWriter.open(FileConfig.ratingFile, append = true)
-      if(movieId!=0)
-      {
-        writer.writeRow(insert(RatingsInfo, 1,movieId))
+      if (movieId != 0) {
+        writer.writeRow(insert(RatingsInfo, 1, movieId))
         println("Rating Successfully")
       }
       else println("Cannot find the movie you entered")
@@ -149,18 +151,17 @@ object MovieRecommendation {
 
     }
 
-  /** insert value into desired position
-    *
-    * @param list original List
-    * @param i   position desired to insert
-    * @param value  the insert value
-    * @tparam T
-    * @return  desire list
-    */
+    /** insert value into desired position
+      *
+      * @param list  original List
+      * @param i     position desired to insert
+      * @param value the insert value
+      * @tparam T
+      * @return desire list
+      */
     def insert[T](list: List[T], i: Int, value: T) = {
-    list.take(i) ++ List(value) ++ list.drop(i)
+      list.take(i) ++ List(value) ++ list.drop(i)
+    }
   }
-
-}
 
 
